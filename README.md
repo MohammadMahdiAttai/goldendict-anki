@@ -5,6 +5,21 @@ Two program dictionaries for [GoldenDict-NG](https://xiaoyifang.github.io/golden
 - **`dict_full.py`**: Persian translation, English entry and pronunciation.
 - **`dict_eng_only.py`**: English entry and pronunciation only.
 
+## Preview
+
+**GoldenDict-NG**
+
+<p>
+  <img src="docs/images/dict-full.png" alt="dict_full.py in GoldenDict-NG" width="48%">
+  <img src="docs/images/dict-only.png" alt="dict_eng_only.py in GoldenDict-NG" width="48%">
+</p>
+
+**Anki card** (front and back)
+
+<p>
+  <img src="docs/images/card-front.png" alt="Anki card, front" width="48%">
+  <img src="docs/images/card-back.png" alt="Anki card, back" width="30%">
+</p>
 Both print HTML and both work with the same Anki note type.
 
 They are built for unreliable networks and for free services that limit how often they can be used. Each part of the entry can come from several services, and the backup services are only asked when the first choice fails. A lookup always ends within 15 seconds. The scripts try several connection routes, including the local proxy of a VPN app, so it should not matter whether the VPN is on or off. They keep copies of words you have looked up. The card stays clean: a `❖ NOTE` line appears only when a part is really missing. Which service supplied what, and every request, are written to a log file.
@@ -18,6 +33,7 @@ For each English word you get:
 
 ## Contents
 
+- [Preview](#preview)
 - [How it works](#how-it-works)
 - [Which service supplies what](#which-service-supplies-what)
 - [Files](#files)
@@ -71,13 +87,13 @@ Through a proxy, the proxy resolves the server name, so a blocked or poisoned lo
 
 ## Which service supplies what
 
-| Service | Supplies | Asked | Notes |
-|---|---|---|---|
-| Google (`translate.googleapis.com`) | Persian translation; English definitions, examples, synonyms | first, in both versions (one request brings the translation and the dictionary data) | free, unofficial, limited per address |
-| [dictionaryapi.dev](https://dictionaryapi.dev/) | English entry with phonetics | first | free, sometimes slow or down (its own server can answer with Cloudflare error 522) |
-| [MyMemory](https://mymemory.translated.net/) | Persian translation | backup for Google | the free quota is small (about 5000 characters per day without an e-mail address) |
-| [Wiktionary](https://en.wiktionary.org/) | English definitions and examples | backup | no phonetic spelling |
-| [Datamuse](https://www.datamuse.com/api/) | English definitions (WordNet) and the phonetic spelling in IPA | backup, and for a missing phonetic spelling | definitions are terse and have no examples; the phonetic spelling is American English and exists only for words in the CMU Pronouncing Dictionary |
+| Service                                         | Supplies                                                       | Asked                                                                                | Notes                                                                                                                                             |
+| ----------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Google (`translate.googleapis.com`)             | Persian translation; English definitions, examples, synonyms   | first, in both versions (one request brings the translation and the dictionary data) | free, unofficial, limited per address                                                                                                             |
+| [dictionaryapi.dev](https://dictionaryapi.dev/) | English entry with phonetics                                   | first                                                                                | free, sometimes slow or down (its own server can answer with Cloudflare error 522)                                                                |
+| [MyMemory](https://mymemory.translated.net/)    | Persian translation                                            | backup for Google                                                                    | the free quota is small (about 5000 characters per day without an e-mail address)                                                                 |
+| [Wiktionary](https://en.wiktionary.org/)        | English definitions and examples                               | backup                                                                               | no phonetic spelling                                                                                                                              |
+| [Datamuse](https://www.datamuse.com/api/)       | English definitions (WordNet) and the phonetic spelling in IPA | backup, and for a missing phonetic spelling                                          | definitions are terse and have no examples; the phonetic spelling is American English and exists only for words in the CMU Pronouncing Dictionary |
 
 ## Files
 
@@ -92,7 +108,9 @@ goldendict-anki/
 │   ├── back.html       card back (builds the layout from the Meaning field)
 │   └── style.css       styling for the note type
 ├── tools/
-│   └── make_preview.py  builds preview.html: the card at phone and computer widths (not committed)
+│└── make_preview.py  builds preview.html: the card at phone and computer widths (not committed)
+|   ├── docs/
+|   │   └── images/         screenshots used in this README
 ├── tests/
 │   ├── test_dict_core.py
 │   └── run_back_template.js  test helper: runs the card's script with Node, to check the layout it builds
@@ -126,10 +144,10 @@ You should see HTML printed. On Windows, use `python.exe`, not `pythonw.exe`: it
 
 Add two program dictionaries. In GoldenDict-NG, open **Edit → Dictionaries**, go to the **Sources** tab and then the **Programs** section. (If your version labels these differently, look for the program dictionary settings there.) For each program, set:
 
-| Name | Type | Command line |
-|---|---|---|
-| Dictionary (Persian + English) | `Html` | `python "C:\Tools\goldendict-anki\dict_full.py" %GDWORD%` |
-| Dictionary (English) | `Html` | `python "C:\Tools\goldendict-anki\dict_eng_only.py" %GDWORD%` |
+| Name                           | Type   | Command line                                                  |
+| ------------------------------ | ------ | ------------------------------------------------------------- |
+| Dictionary (Persian + English) | `Html` | `python "C:\Tools\goldendict-anki\dict_full.py" %GDWORD%`     |
+| Dictionary (English)           | `Html` | `python "C:\Tools\goldendict-anki\dict_eng_only.py" %GDWORD%` |
 
 Change the path to wherever you saved the files, and enable both programs.
 
@@ -267,13 +285,13 @@ The audio is fetched by GoldenDict-NG itself when you press a button, not by the
 
 ## Command-line options
 
-| Option | Effect |
-|---|---|
-| `--check` | Test every service over every route and print the results. |
+| Option           | Effect                                                              |
+| ---------------- | ------------------------------------------------------------------- |
+| `--check`        | Test every service over every route and print the results.          |
 | `--no-translate` | Skip the Persian translation. `dict_eng_only.py` already does this. |
-| `--no-define` | Skip the English entry. |
-| `--no-cache` | Neither read nor write the cache. |
-| `--debug` | Write requests and errors to stderr. |
+| `--no-define`    | Skip the English entry.                                             |
+| `--no-cache`     | Neither read nor write the cache.                                   |
+| `--debug`        | Write requests and errors to stderr.                                |
 
 Options must come before the word. `--` ends the options, so a word that begins with `--` can still be looked up.
 
@@ -281,30 +299,30 @@ Options must come before the word. `--` ends the options, so a word that begins 
 
 These constants are at the top of `dict_core.py`:
 
-| Setting | Default | Meaning |
-|---|---|---|
-| `PROXY` | `""` | Your VPN's proxy, for example `socks5://127.0.0.1:10808` or `http://127.0.0.1:10809`. |
-| `AUTO_PROXY` | `True` | Look for a VPN app's local proxy on `127.0.0.1`. |
-| `LOCAL_PROXY_PORTS` | common ports | The ports probed by `AUTO_PROXY`. Only `127.0.0.1` is ever probed. |
-| `ENABLE_AUDIO` | `True` | The Google voice button. |
-| `RECORDING_BUTTON` | `False` | Also a Recording button with dictionaryapi.dev's MP3, when it has one. |
-| `SHOW_SOURCE_NOTES` | `False` | Also write the notes that say which service supplied a part. They are always in `network.log`. |
-| `DISABLED_SERVICES` | `()` | Services never used, for example `("mymemory", "datamuse")`. See [Privacy](#privacy). |
-| `MYMEMORY_EMAIL` | `""` | An e-mail address, which raises MyMemory's daily limit. See its documentation. |
-| `TOTAL_BUDGET` | `15.0` | Seconds after which the script prints what it has. |
-| `HEDGE_DELAY` | `2.0` | Seconds of silence from a first choice before a backup is asked. |
-| `OPTIONAL_GRACE` | `4.0` | Seconds in all that a better service gets once a lesser answer is in hand. |
-| `EXTRA_GRACE` | `2.0` | The same, for a service asked only to add an extra (phonetic spelling, examples, synonyms). |
-| `SHORT_GRACE` | `0.5` | The same, for a service that did not answer in recent lookups. |
-| `LOOKUP_WAIT` | `8.0` | Seconds the second program waits for the first one's lookup of the same word. |
-| `COOLDOWN_BASE` | `600` | Seconds a service that answered 429 or 403 is left alone. Doubles on each repeat. |
-| `COOLDOWN_MAX` | `3600` | The longest such wait (a longer `Retry-After` from the server is respected). |
-| `ROUTE_TIMEOUT` | `8.0` | Seconds one network operation on a route may take. |
-| `ROUTE_STAGGER` | `1.2` | Seconds before the next route starts alongside the earlier ones. |
-| `CACHE_TTL` | 30 days | How long a result is fresh (no network needed). |
-| `BACKUP_TTL` | 1 day | The same for a backup service's result. |
-| `NEGATIVE_CACHE_TTL` | 1 day | How long a "not found" answer is fresh. |
-| `STALE_TTL` | 1 year | How old a saved copy may be and still be used when the network fails. |
+| Setting              | Default      | Meaning                                                                                        |
+| -------------------- | ------------ | ---------------------------------------------------------------------------------------------- |
+| `PROXY`              | `""`         | Your VPN's proxy, for example `socks5://127.0.0.1:10808` or `http://127.0.0.1:10809`.          |
+| `AUTO_PROXY`         | `True`       | Look for a VPN app's local proxy on `127.0.0.1`.                                               |
+| `LOCAL_PROXY_PORTS`  | common ports | The ports probed by `AUTO_PROXY`. Only `127.0.0.1` is ever probed.                             |
+| `ENABLE_AUDIO`       | `True`       | The Google voice button.                                                                       |
+| `RECORDING_BUTTON`   | `False`      | Also a Recording button with dictionaryapi.dev's MP3, when it has one.                         |
+| `SHOW_SOURCE_NOTES`  | `False`      | Also write the notes that say which service supplied a part. They are always in `network.log`. |
+| `DISABLED_SERVICES`  | `()`         | Services never used, for example `("mymemory", "datamuse")`. See [Privacy](#privacy).          |
+| `MYMEMORY_EMAIL`     | `""`         | An e-mail address, which raises MyMemory's daily limit. See its documentation.                 |
+| `TOTAL_BUDGET`       | `15.0`       | Seconds after which the script prints what it has.                                             |
+| `HEDGE_DELAY`        | `2.0`        | Seconds of silence from a first choice before a backup is asked.                               |
+| `OPTIONAL_GRACE`     | `4.0`        | Seconds in all that a better service gets once a lesser answer is in hand.                     |
+| `EXTRA_GRACE`        | `2.0`        | The same, for a service asked only to add an extra (phonetic spelling, examples, synonyms).    |
+| `SHORT_GRACE`        | `0.5`        | The same, for a service that did not answer in recent lookups.                                 |
+| `LOOKUP_WAIT`        | `8.0`        | Seconds the second program waits for the first one's lookup of the same word.                  |
+| `COOLDOWN_BASE`      | `600`        | Seconds a service that answered 429 or 403 is left alone. Doubles on each repeat.              |
+| `COOLDOWN_MAX`       | `3600`       | The longest such wait (a longer `Retry-After` from the server is respected).                   |
+| `ROUTE_TIMEOUT`      | `8.0`        | Seconds one network operation on a route may take.                                             |
+| `ROUTE_STAGGER`      | `1.2`        | Seconds before the next route starts alongside the earlier ones.                               |
+| `CACHE_TTL`          | 30 days      | How long a result is fresh (no network needed).                                                |
+| `BACKUP_TTL`         | 1 day        | The same for a backup service's result.                                                        |
+| `NEGATIVE_CACHE_TTL` | 1 day        | How long a "not found" answer is fresh.                                                        |
+| `STALE_TTL`          | 1 year       | How old a saved copy may be and still be used when the network fails.                          |
 
 ## Cache, saved copies and the log
 
