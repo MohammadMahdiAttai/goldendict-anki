@@ -1,5 +1,7 @@
 # goldendict-anki
 
+**English** | [فارسی](README.fa.md)
+
 Two program dictionaries for [GoldenDict-NG](https://xiaoyifang.github.io/goldendict-ng/) that show an English entry with a pronunciation button, plus an Anki card design that displays the same output:
 
 - **`dict_full.py`**: Persian translation, English entry and pronunciation.
@@ -115,6 +117,7 @@ goldendict-anki/
 │   └── run_back_template.js  test helper: runs the card's script with Node, to check the layout it builds
 ├── .gitignore
 ├── LICENSE
+├── README.fa.md
 └── README.md
 ```
 
@@ -122,8 +125,8 @@ goldendict-anki/
 
 - Python 3.8 or newer. On Linux and macOS the command is usually `python3`.
 - The scripts use only the standard library, so there is nothing to install with `pip`.
-- GoldenDict-NG, with program dictionaries.
-- Anki, with the **AwesomeTTS** add-on if you want the word spoken on the card.
+- GoldenDict-NG, with program dictionaries. See its [install page](https://xiaoyifang.github.io/goldendict-ng/install/).
+- Anki, with the **AwesomeTTS** add-on if you want the word spoken on the card. See the [Anki manual](https://docs.ankiweb.net/platform/linux/installing.html) for Linux.
 
 ## Installation
 
