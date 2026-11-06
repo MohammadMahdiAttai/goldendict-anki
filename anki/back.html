@@ -1,0 +1,251 @@
+<div class="my-wrap">
+  <div class="my-panel">
+    <div class="my-word">{{Word}}</div>
+    <div class="my-tts-row">
+      {{tts en_US voices=AwesomeTTS:Word}}
+    </div>
+
+    <hr class="my-hr">
+
+    <!-- The Meaning field holds the HTML printed by dict_full.py or dict_eng_only.py.
+         The script below reads it as text and builds the layout from it. -->
+    <div id="raw-data" style="display: none;">{{Meaning}}</div>
+    <div id="new-ui"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+    var rawDiv = document.getElementById('raw-data');
+    var uiDiv = document.getElementById('new-ui');
+    if (!rawDiv || !uiDiv) return;
+
+    var html = rawDiv.innerHTML;
+
+    // Escape text before it goes into the markup built below, so that a "<" or "&" in a
+    // definition cannot break the card or turn into markup.
+    function esc(text) {
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    // A plain line that looks like a phonetic spelling: /.../, [...] or IPA letters
+    function looksLikePhonetic(line) {
+        return /^[\/\[]/.test(line) || /[\u0250-\u02FF]/.test(line);
+    }
+
+    function build() {
+        // 1. Strip everything that is not text: audio players, links (the play buttons), broken
+        //    icon characters and pictures. Turn block tags and <br> into line breaks.
+        var cleanText = html
+            .replace(/<audio[^>]*>[\s\S]*?<\/audio>/gi, '')              // audio players
+            .replace(/<a[^>]*>[\s\S]*?<\/a>/gi, '')                      // all links (the play buttons)
+            .replace(/▶\s*(?:Google voice|Recording|Play|نتایج)/gi, '')  // text left behind by the play buttons
+            .replace(/[\uFFFC\u2318]/g, '')                              // broken icon characters
+            .replace(/<img[^>]*>/gi, '')                                 // pictures
+            .replace(/<br\s*\/?>/gi, '\n')                               // <br> becomes a line break
+            .replace(/<\/?(?:div|b|span|p|i|li|ul|ol|tr|td|h[1-6])(?:\s[^>]*)?>/gi, '\n') // formatting tags become line breaks
+            .replace(/<[^>]+>/g, '');                                    // any other tag: keep its text only
+
+        // 2. Decode HTML entities (&amp; becomes &, and so on)
+        var txtArea = document.createElement('textarea');
+        txtArea.innerHTML = cleanText;
+        cleanText = txtArea.value;
+
+        // Not a note made by the dictionary scripts (no marker found): show it as it is
+        if (cleanText.indexOf('❖') === -1) {
+            if (cleanText.replace(/\s/g, '')) {
+                uiDiv.innerHTML = '<div class="my-defs"><div class="my-def-item" style="display:block;">' + html + '</div></div>';
+            }
+            rawDiv.innerHTML = '';
+            return;
+        }
+
+        var lines = cleanText.split('\n');
+        var data = { notes: [], phonetic: '', translation: '', synonyms: [], examples: [], groups: [] };
+        var currentGroup = null;
+        var currentSection = '';
+
+        // Each of these ignores what is already there, so nothing is ever shown twice
+        function addMeaning(text) {
+            if (text && currentGroup && currentGroup.meanings.indexOf(text) === -1) currentGroup.meanings.push(text);
+        }
+        function addExample(text) {
+            if (text && data.examples.indexOf(text) === -1) data.examples.push(text);
+        }
+        function addSynonyms(text) {
+            var addedAny = false;
+            text.split('·').forEach(function (part) {
+                var s = part.trim();
+                if (s) {
+                    if (data.synonyms.indexOf(s) === -1) data.synonyms.push(s);
+                    addedAny = true;
+                }
+            });
+            return addedAny;
+        }
+        function withoutBullet(text) {
+            return text.indexOf('•') === 0 ? text.substring(1).trim() : text;
+        }
+
+        // 3. Read the text line by line, section by section
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].trim();
+            if (!line || line.charAt(0) === '▶') continue;  // empty lines and play-button text
+
+            var markerMatch = line.match(/^❖\s*([^:]+):(.*)$/i);
+            if (markerMatch) {
+                var label = markerMatch[1].trim().toUpperCase();
+                var rest = markerMatch[2].trim();
+                currentSection = label;
+
+                if (label === 'NOTE') {
+                    if (rest && data.notes.indexOf(rest) === -1) data.notes.push(rest);
+                    currentSection = '';
+                } else if (label === 'GOOGLE TRANSLATE') {
+                    if (rest && !data.translation) data.translation = rest;
+                } else if (label === 'PHONETIC') {
+                    if (rest && !data.phonetic) data.phonetic = rest;
+                } else if (label === 'POS') {
+                    // Merge repeated parts of speech, so VERB or NOUN is never printed twice
+                    var existing = null;
+                    for (var j = 0; j < data.groups.length; j++) {
+                        if (data.groups[j].pos === rest) { existing = data.groups[j]; break; }
+                    }
+                    if (existing) {
+                        currentGroup = existing;
+                    } else {
+                        currentGroup = { pos: rest, meanings: [], started: false };
+                        data.groups.push(currentGroup);
+                    }
+                    currentGroup.started = false;
+                } else if (label === 'MEANINGS') {
+                    // Some entries give meanings without a part of speech (backup services do this),
+                    // or a second block of meanings with no new part of speech: give them a group of their own
+                    if (!currentGroup || currentGroup.started) {
+                        currentGroup = { pos: '', meanings: [], started: false };
+                        data.groups.push(currentGroup);
+                    }
+                    currentGroup.started = true;
+                    if (rest) addMeaning(withoutBullet(rest));
+                } else if (label === 'SYNONYMS') {
+                    // Stop reading after the synonyms, so that a dictionary name below them cannot get in
+                    if (rest && addSynonyms(rest)) currentSection = '';
+                } else if (label === 'EXAMPLES') {
+                    if (rest) addExample(withoutBullet(rest));
+                }
+                continue;
+            }
+
+            // Lines that continue a section
+            if (currentSection === 'GOOGLE TRANSLATE') {
+                if (!data.translation) data.translation = line;
+                currentSection = '';
+            } else if (currentSection === 'PHONETIC') {
+                if (!data.phonetic) data.phonetic = line;
+                currentSection = '';
+            } else if (currentSection === 'MEANINGS') {
+                if (line.indexOf('•') === 0) addMeaning(line.substring(1).trim());
+            } else if (currentSection === 'EXAMPLES') {
+                if (line.indexOf('•') === 0) addExample(line.substring(1).trim());
+            } else if (currentSection === 'SYNONYMS') {
+                if (addSynonyms(withoutBullet(line))) currentSection = '';
+            } else if (currentSection === '' && !data.groups.length && !data.phonetic && looksLikePhonetic(line)) {
+                // Notes made by the older scripts: the phonetic spelling is a plain line before the first part of speech
+                data.phonetic = line;
+            }
+        }
+
+        // 4. Build the final HTML
+        var finalHtml = '';
+
+        // Notes: something is missing, or came from a backup service
+        data.notes.forEach(function (note) {
+            finalHtml += '<div class="my-note">' + esc(note) + '</div>';
+        });
+
+        // Parts of speech and their meanings. The phonetic spelling goes on the right of the first row.
+        data.groups.forEach(function (g, idx) {
+            var showPhonetic = (idx === 0 && data.phonetic);
+
+            if (g.pos || showPhonetic) {
+                finalHtml += '<div class="my-pos-row">';
+                finalHtml += g.pos ? '<span class="my-pos-pill">' + esc(g.pos) + '</span>' : '<span></span>';
+                if (showPhonetic) finalHtml += '<span class="my-phonetic">' + esc(data.phonetic) + '</span>';
+                finalHtml += '</div>';
+            }
+
+            if (g.meanings.length > 0) {
+                finalHtml += '<div class="my-defs">';
+                g.meanings.forEach(function (m, mIdx) {
+                    finalHtml += '<div class="my-def-item"><span class="my-def-num">' + (mIdx + 1) + '</span><span>' + esc(m) + '</span></div>';
+                });
+                finalHtml += '</div>';
+            }
+        });
+
+        // A phonetic spelling but no part of speech at all
+        if (data.groups.length === 0 && data.phonetic) {
+            finalHtml += '<div class="my-pos-row"><span class="my-phonetic">' + esc(data.phonetic) + '</span></div>';
+        }
+
+        // The translation button, shown only when there is a translation
+        if (data.translation) {
+            finalHtml += '<button class="my-fa-btn" id="my-ftgl" onclick="myToggleFa()">👁 نمایش ترجمه فارسی</button>';
+            finalHtml += '<div class="my-fa-box" id="my-fabox" style="display:none;"><span class="my-fa-label">ترجمه گوگل</span>' + esc(data.translation) + '</div>';
+        }
+
+        // Synonyms
+        if (data.synonyms.length > 0) {
+            finalHtml += '<div class="my-sec my-sec-syn">';
+            finalHtml += '<div class="my-sec-label my-syn-label"><span class="my-dot"></span>Synonyms</div>';
+            finalHtml += '<div class="my-syn-text">' + esc(data.synonyms.join(' · ')) + '</div></div>';
+        }
+
+        // Examples
+        if (data.examples.length > 0) {
+            finalHtml += '<div class="my-sec my-sec-ex">';
+            finalHtml += '<div class="my-sec-label my-ex-label"><span class="my-dot"></span>Dictionary examples</div><div class="my-ex-text">';
+            data.examples.forEach(function (e) {
+                finalHtml += '<p>• ' + esc(e) + '</p>';
+            });
+            finalHtml += '</div></div>';
+        }
+
+        // Put the result in place and remove the raw data
+        uiDiv.innerHTML = finalHtml;
+        rawDiv.style.display = 'none';
+        rawDiv.innerHTML = '';
+    }
+
+    try {
+        build();
+    } catch (error) {
+        // Never leave the card empty: if anything goes wrong, show the field as plain text
+        uiDiv.textContent = rawDiv.textContent;
+        rawDiv.style.display = 'none';
+    }
+})();
+
+// Toggle the Persian translation (show / hide)
+window.myToggleFa = function () {
+    var b = document.getElementById('my-fabox');
+    var btn = document.getElementById('my-ftgl');
+    if (!b || !btn) return;
+
+    var isHidden = b.style.display === 'none' || b.style.display === '';
+
+    if (isHidden) {
+        b.style.display = 'block';
+        btn.classList.add('my-open');
+        btn.innerHTML = '🙈 پنهان کردن ترجمه';
+    } else {
+        b.style.display = 'none';
+        btn.classList.remove('my-open');
+        btn.innerHTML = '👁 نمایش ترجمه فارسی';
+    }
+};
+</script>

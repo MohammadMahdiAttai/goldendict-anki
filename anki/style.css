@@ -1,0 +1,375 @@
+/* All sizes are CSS variables on .my-wrap. The @media blocks only override
+   these variables and the spacing, so the layout stays the same on every screen. */
+
+.card {
+  background-color: #090d14;
+  color: #cdd9e5;
+  text-align: left !important;
+  direction: ltr !important;
+  margin: 0;
+  padding: 28px 20px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.my-wrap {
+  --fs-word: 40px;
+  --fs-body: 14px;
+  --fs-small: 13px;
+  --fs-label: 10px;
+  --fs-phonetic: 13px;
+  --fs-fa: 15px;
+  background: #090d14;
+  padding: 24px;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 550px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Tahoma, Arial, sans-serif;
+  line-height: 1.5;
+}
+
+/* Scale the headword with the screen where clamp() is supported */
+@supports (font-size: clamp(1px, 1vw, 2px)) {
+  .my-wrap {
+    --fs-word: clamp(30px, 9.5vw, 40px);
+  }
+}
+
+.my-wrap * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.my-panel {
+  background: #161b27;
+  border: 1px solid #21262d;
+  border-top: 3px solid #1a6fbb;
+  border-radius: 18px;
+  padding: 34px 30px 28px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.my-word {
+  font-size: 40px; /* fallback */
+  font-size: var(--fs-word);
+  font-weight: 900;
+  color: #79c0ff;
+  text-align: center;
+  letter-spacing: -1px;
+  line-height: 1.15;
+  margin-bottom: 6px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.my-tts-row {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+/* Play button rendered by AwesomeTTS */
+.replay-button {
+  background: #1a3a5c !important;
+  border: 1px solid #1a6fbb !important;
+  border-radius: 20px !important;
+  padding: 5px 14px !important;
+  color: #79c0ff !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  letter-spacing: 0.5px !important;
+  cursor: pointer !important;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.replay-button svg {
+  display: none !important;
+}
+
+.replay-button::before {
+  content: "▶ Play" !important;
+}
+
+.my-hr {
+  border: none;
+  height: 1px;
+  background: #1c2333;
+  margin: 22px 0;
+}
+
+/* Part of speech on the left, phonetic spelling on the right */
+.my-pos-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.my-phonetic {
+  margin: 0 0 0 auto;
+  text-align: right;
+  color: #8b949e;
+  font-size: 13px;
+  font-size: var(--fs-phonetic);
+  font-style: italic;
+  overflow-wrap: anywhere;
+}
+
+.my-pos-pill {
+  background: rgba(210, 168, 255, 0.1);
+  border: 1px solid rgba(210, 168, 255, 0.3);
+  border-radius: 20px;
+  padding: 5px 14px;
+  color: #d2a8ff;
+  font-size: 10px;
+  font-size: var(--fs-label);
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.my-defs {
+  margin-bottom: 22px;
+}
+
+.my-def-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #1c2333;
+  color: #cdd9e5;
+  font-size: 14px;
+  font-size: var(--fs-body);
+  line-height: 1.6;
+}
+
+.my-def-item > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.my-def-item:last-child {
+  border-bottom: none;
+}
+
+.my-def-num {
+  color: #d2a8ff;
+  font-weight: 800;
+  font-size: 12px;
+  font-size: var(--fs-small);
+  min-width: 18px;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.my-fa-btn {
+  width: 100%;
+  background: transparent;
+  border: 1.5px solid #238636;
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 44px;
+  color: #56d364;
+  font-family: inherit;
+  font-size: 13px;
+  font-size: var(--fs-small);
+  font-weight: 700;
+  line-height: 1.4;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 18px;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.my-fa-btn:hover {
+  background: rgba(35, 134, 54, 0.12);
+}
+
+.my-fa-btn.my-open {
+  background: rgba(35, 134, 54, 0.25);
+}
+
+.my-fa-box {
+  background: #0d1117;
+  border-right: 3px solid #3498db;
+  border-radius: 0 10px 10px 0;
+  padding: 18px 20px;
+  margin-bottom: 18px;
+  direction: rtl;
+  text-align: right;
+  font-family:
+    Tahoma, "Noto Naskh Arabic", "Noto Sans Arabic", "Segoe UI", Arial,
+    sans-serif;
+  font-size: 15px;
+  font-size: var(--fs-fa);
+  color: #cdd9e5;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+  display: none; /* hidden until the button is pressed */
+}
+
+.my-fa-label {
+  color: #3498db;
+  font-size: 10px;
+  font-size: var(--fs-label);
+  font-weight: 800;
+  letter-spacing: 2px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.my-sec {
+  background: #0d1117;
+  border-radius: 10px;
+  border: 1px solid #1c2333;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+
+.my-sec:last-child {
+  margin-bottom: 0;
+}
+
+.my-sec-syn {
+  border-left: 3px solid #f7c948;
+  border-radius: 0 10px 10px 0;
+}
+
+.my-sec-ex {
+  border-left: 3px solid #56d364;
+  border-radius: 0 10px 10px 0;
+}
+
+.my-sec-label {
+  font-size: 10px;
+  font-size: var(--fs-label);
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+
+.my-syn-label {
+  color: #f7c948;
+}
+.my-ex-label {
+  color: #56d364;
+}
+
+.my-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.my-syn-text {
+  color: #f7c948;
+  font-weight: 700;
+  font-size: 14px;
+  font-size: var(--fs-body);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.my-ex-text {
+  color: #8b949e;
+  font-style: italic;
+  font-size: 13px;
+  font-size: var(--fs-small);
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.my-ex-text p {
+  margin-bottom: 7px;
+}
+
+.my-ex-text p:last-child {
+  margin-bottom: 0;
+}
+
+/* Warning shown when data is missing or came from a backup service */
+.my-note {
+  background: rgba(210, 153, 34, 0.1);
+  border-left: 3px solid #d29922;
+  border-radius: 0 8px 8px 0;
+  color: #e3b341;
+  font-size: 12px;
+  font-size: var(--fs-small);
+  line-height: 1.5;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  overflow-wrap: anywhere;
+}
+
+/* Phones and narrow windows */
+@media (max-width: 600px) {
+  .card {
+    padding: 14px 10px;
+  }
+
+  .my-wrap {
+    --fs-body: 17px;
+    --fs-small: 15px;
+    --fs-label: 12px;
+    --fs-phonetic: 17px;
+    --fs-fa: 20px;
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .my-panel {
+    padding: 26px 20px 22px;
+    border-radius: 16px;
+  }
+
+  .my-sec,
+  .my-fa-box {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 360px) {
+  .my-panel {
+    padding: 20px 16px 18px;
+  }
+
+  .my-pos-pill {
+    padding: 5px 10px;
+    letter-spacing: 1.5px;
+  }
+}
+
+/* Touch screens: larger tap targets */
+@media (pointer: coarse) {
+  .my-fa-btn {
+    min-height: 52px;
+  }
+
+  .replay-button {
+    padding: 8px 18px !important;
+    min-height: 44px;
+    font-size: 14px !important;
+  }
+}
