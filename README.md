@@ -9,17 +9,30 @@ Two program dictionaries for [GoldenDict-NG](https://xiaoyifang.github.io/golden
 
 **GoldenDict-NG**
 
-<p>
-  <img src="docs/images/dict-full.png" alt="dict_full.py in GoldenDict-NG" width="48%">
-  <img src="docs/images/dict-only.png" alt="dict_eng_only.py in GoldenDict-NG" width="48%">
-</p>
+<table>
+  <tr>
+    <td valign="top"><img src="docs/images/dict-full.png" alt="dict_full.py in GoldenDict-NG" width="400"></td>
+    <td valign="top"><img src="docs/images/dict-only.png" alt="dict_eng_only.py in GoldenDict-NG" width="400"></td>
+  </tr>
+  <tr>
+    <td align="center"><code>dict_full.py</code></td>
+    <td align="center"><code>dict_eng_only.py</code></td>
+  </tr>
+</table>
 
-**Anki card** (front and back)
+**Anki card**
 
-<p>
-  <img src="docs/images/card-front.png" alt="Anki card, front" width="48%">
-  <img src="docs/images/card-back.png" alt="Anki card, back" width="30%">
-</p>
+<table>
+  <tr>
+    <td valign="top" align="center"><img src="docs/images/card-back.png" alt="Anki card, back" width="320"></td>
+    <td valign="top" align="center"><img src="docs/images/card-front.png" alt="Anki card, front" width="420"></td>
+  </tr>
+  <tr>
+    <td align="center">Back</td>
+    <td align="center">Front</td>
+  </tr>
+</table>
+
 Both print HTML and both work with the same Anki note type.
 
 They are built for unreliable networks and for free services that limit how often they can be used. Each part of the entry can come from several services, and the backup services are only asked when the first choice fails. A lookup always ends within 15 seconds. The scripts try several connection routes, including the local proxy of a VPN app, so it should not matter whether the VPN is on or off. They keep copies of words you have looked up. The card stays clean: a `❖ NOTE` line appears only when a part is really missing. Which service supplied what, and every request, are written to a log file.
