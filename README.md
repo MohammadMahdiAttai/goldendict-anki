@@ -111,7 +111,7 @@ goldendict-anki/
 Clone the repository or download it, and keep all the files in the same folder:
 
 ```
-git clone https://github.com/<your-user>/goldendict-anki.git
+git clone https://github.com/MohammadMahdiAttai/goldendict-anki.git
 ```
 
 Check that the full version runs:
