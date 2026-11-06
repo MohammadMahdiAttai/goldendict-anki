@@ -133,7 +133,8 @@ goldendict-anki/
 
 ## Requirements
 
-- Python 3.8 or newer. The scripts use only the standard library, so there is nothing to install with `pip`.
+- Python 3.8 or newer. On Linux and macOS the command is usually `python3`.
+- The scripts use only the standard library, so there is nothing to install with `pip`.
 - GoldenDict-NG, with program dictionaries.
 - Anki, with the **AwesomeTTS** add-on if you want the word spoken on the card.
 
@@ -145,24 +146,41 @@ Clone the repository or download it, and keep all the files in the same folder:
 git clone https://github.com/MohammadMahdiAttai/goldendict-anki.git
 ```
 
-Check that the full version runs:
+Check that the full version runs. On Windows:
 
 ```
 python dict_full.py hello
+```
+
+On Linux and macOS:
+
+```
+python3 dict_full.py hello
 ```
 
 You should see HTML printed. On Windows, use `python.exe`, not `pythonw.exe`: it has no standard output, so GoldenDict would receive nothing.
 
 ## GoldenDict-NG setup
 
-Add two program dictionaries. In GoldenDict-NG, open **Edit → Dictionaries**, go to the **Sources** tab and then the **Programs** section. (If your version labels these differently, look for the program dictionary settings there.) For each program, set:
+Add two program dictionaries. In GoldenDict-NG, open **Edit → Dictionaries**, go to the **Sources** tab and then the **Programs** section. (If your version labels these differently, look for the program dictionary settings there.) For each program, set the name, the type `Html` and the command line for your system.
+
+**Windows**
 
 | Name                           | Type   | Command line                                                  |
 | ------------------------------ | ------ | ------------------------------------------------------------- |
 | Dictionary (Persian + English) | `Html` | `python "C:\Tools\goldendict-anki\dict_full.py" %GDWORD%`     |
 | Dictionary (English)           | `Html` | `python "C:\Tools\goldendict-anki\dict_eng_only.py" %GDWORD%` |
 
+**Linux and macOS**
+
+| Name                           | Type   | Command line                                                    |
+| ------------------------------ | ------ | --------------------------------------------------------------- |
+| Dictionary (Persian + English) | `Html` | `python3 "/home/you/goldendict-anki/dict_full.py" %GDWORD%`     |
+| Dictionary (English)           | `Html` | `python3 "/home/you/goldendict-anki/dict_eng_only.py" %GDWORD%` |
+
 Change the path to wherever you saved the files, and enable both programs.
+
+On Linux and macOS, first check in a terminal that `python3 dict_full.py hello` prints HTML. If GoldenDict-NG is installed as a Flatpak or Snap, it runs in a sandbox and may not be able to start `python3` or read the script's folder. In that case use the AppImage or a distribution package, or give the sandbox access to that folder. (The scripts and the tests were checked on Windows and Linux. GoldenDict-NG itself was tested on Windows only, and macOS was not tested.)
 
 If you already have a program that runs `dict_lookup.py`, it keeps working. You can point it to `dict_full.py` instead.
 
