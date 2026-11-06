@@ -74,27 +74,13 @@ GoldenDict-NG runs one of the scripts for each search and passes the word in pla
 
 - never repeats a request that was answered with 429 or 403, not over another route that leaves through the same address and not a second time
 - leaves that service alone for 10 minutes, doubling each time it happens again up to an hour (a `Retry-After` from the server is respected), and uses the other services meanwhile
-- asks Google at most once per word for both programs together (see **One lookup for both programs** below)
+- asks Google at most once per word for both programs together
 
-**Backups.** Persian translation comes from Google, and from MyMemory when Google fails. The English entry comes from dictionaryapi.dev, then Google, then Wiktionary, then Datamuse. A backup is asked after 2 seconds of silence from the first choice, or at once when the first choice failed or did not answer in recent lookups. A lesser answer is shown only when the better services fail, and the card says which service supplied it. A better service that is still running gets 4 seconds in all (2 seconds if it was only asked for an extra: the phonetic spelling, examples or synonyms), counted from when it was asked, and at least half a second after the lesser answer arrived.
-
-**Completing the entry.** The best entry that arrives is the base, and its gaps are filled from the other services: the phonetic spelling from dictionaryapi.dev or Datamuse (in IPA), examples from dictionaryapi.dev, Google or Wiktionary, and synonyms from dictionaryapi.dev or Google. A service is waited for an extra only briefly, and not at all if it is known to be down. The log says where each part came from, and `SHOW_SOURCE_NOTES` can show it on the card too (see [NOTE lines](#note-lines)).
-
-**One lookup for both programs.** GoldenDict-NG starts both programs for a search at the same moment. Left alone, each would ask the services itself and decide by its own timing when it has enough, so the two cards could differ (one with examples, one without, for instance) and Google would be asked twice. Instead, the first program to start takes a short lock for that word and does the lookup. The other waits (at most 8 seconds), then reads what the first one saved. Both are built from the same answers, so the English part is the same in both, and the services are asked once. Both programs ask the same services for the entry, Google included. The lock is a small file, `lookup-<hash>.lock`, in the cache folder. It is removed when the lookup ends, and one left behind by a script that died is ignored after 20 seconds.
-
-**Capital letters.** A word whose only capital is its first letter (`Dispatched`) is usually at the start of a sentence, so its lower-case form is looked up first, and the form as typed second. Anything else with capitals (`NASA`, `iPhone`, `New York`) is looked up as typed first. Datamuse's answer uses one entry only, so the common sense of a word is not mixed with a proper noun of the same spelling.
+**Backups.** Persian translation comes from Google, and from MyMemory when Google fails. The English entry comes from dictionaryapi.dev, then Google, then Wiktionary, then Datamuse. A backup is asked after 2 seconds of silence from the first choice, or at once when the first choice failed or did not answer in recent lookups. A lesser answer is shown only when the better services fail, and the log says which service supplied it (the card too, if `SHOW_SOURCE_NOTES` is on). A better service that is still running gets 4 seconds in all (2 seconds if it was only asked for an extra: the phonetic spelling, examples or synonyms), counted from when it was asked, and at least half a second after the lesser answer arrived.
 
 **Time budget.** The script prints what it has within 15 seconds, however the network behaves. The process ends at that point even if a request is still hanging.
 
-**Connection routes.** Each request can use several routes. They start one after another, 1.2 seconds apart, and the first answer wins, so a route that hangs never holds up one that works. A route that fails at once lets the next one start at once.
-
-1. the route that worked last time for that service
-2. a direct connection
-3. the proxy from `PROXY`, or else the system proxy
-4. a **local proxy found automatically**: the script checks a short list of ports that VPN apps commonly use on `127.0.0.1` and recognises HTTP and SOCKS5 proxies (this covers VPN apps that run in proxy mode without setting the system proxy)
-5. a direct connection over IPv4 only (some networks never answer IPv6)
-
-Through a proxy, the proxy resolves the server name, so a blocked or poisoned local DNS does not matter. When a VPN is off, nothing listens on those ports and the direct route is used.
+**Connection routes.** Each request tries a direct connection, your configured or system proxy, and a VPN app's local proxy (found automatically). The first answer wins.
 
 **Saved copies.** Results are kept on disk. A result is fresh for 30 days (one day for a backup service's result, so a better service can take over) and then needs no network at all. When the network fails, a saved copy of up to a year old is used instead.
 
@@ -120,14 +106,15 @@ goldendict-anki/
 │   ├── front.html      card front
 │   ├── back.html       card back (builds the layout from the Meaning field)
 │   └── style.css       styling for the note type
+├── docs/
+│   └── images/         screenshots used in this README
 ├── tools/
-│└── make_preview.py  builds preview.html: the card at phone and computer widths (not committed)
-|   ├── docs/
-|   │   └── images/         screenshots used in this README
+│   └── make_preview.py builds preview.html: the card at phone and computer widths (not committed)
 ├── tests/
 │   ├── test_dict_core.py
 │   └── run_back_template.js  test helper: runs the card's script with Node, to check the layout it builds
 ├── .gitignore
+├── LICENSE
 └── README.md
 ```
 
@@ -182,8 +169,6 @@ Change the path to wherever you saved the files, and enable both programs.
 
 On Linux and macOS, first check in a terminal that `python3 dict_full.py hello` prints HTML. If GoldenDict-NG is installed as a Flatpak or Snap, it runs in a sandbox and may not be able to start `python3` or read the script's folder. In that case use the AppImage or a distribution package, or give the sandbox access to that folder. (The scripts and the tests were checked on Windows and Linux. GoldenDict-NG itself was tested on Windows only, and macOS was not tested.)
 
-If you already have a program that runs `dict_lookup.py`, it keeps working. You can point it to `dict_full.py` instead.
-
 GoldenDict replaces `%GDWORD%` with the word you searched for. Phrases such as `ice cream` work because the scripts join their arguments back together.
 
 ## Anki setup
@@ -197,7 +182,7 @@ GoldenDict replaces `%GDWORD%` with the word you searched for. Phrases such as `
 4. Install the **AwesomeTTS** add-on (**Tools → Add-ons → Get Add-ons**). The templates use `{{tts en_US voices=AwesomeTTS:Word}}` to speak the word. If you do not use AwesomeTTS, delete those `{{tts ...}}` tags from both templates.
 5. Fill the `Meaning` field with the output of either script. The simplest way is to run the script in a terminal, for example `python dict_full.py hello`, copy the printed HTML, and paste it into the field's HTML editor (press Ctrl+Shift+X in Anki's editor), so the markup is kept as printed.
 
-Both versions use the same note type. Notes made with the older scripts still display correctly.
+Both versions use the same note type.
 
 **How the card is laid out.** The back template reads the `Meaning` field as text and builds the layout from it:
 
@@ -297,22 +282,15 @@ By default the card has `❖ NOTE` lines only for problems:
 
 A word, name or phrase that has no entry at all is not a problem, and nothing is written for it. The script concludes this when two services answered that they have nothing and one of them is a broad one (Wiktionary or dictionaryapi.dev); Google and Datamuse alone are not enough, because they only know common words. The card then has just the translation, and the English-only version shows nothing, as any dictionary does for a word it does not have. It does not matter that another service was down at the time. The script stops waiting for the services that have not answered, and a later lookup of the same word needs no network, because the "no entry" answers are saved for a day. The log says `No English entry found (...)`.
 
-Nothing is written when every part is there, even if a backup service supplied it. That information is in `network.log`, one `note:` line per lookup. To see it on the card as well, set `SHOW_SOURCE_NOTES = True`. The card then also says, for example:
+Nothing is written when every part is there, even if a backup service supplied it. That information is in `network.log`, one `note:` line per lookup. To see it on the card as well, set `SHOW_SOURCE_NOTES = True`. The card then also says which service supplied each part.
 
-- `Persian translation from MyMemory (Google: rate limited (HTTP 429)).`: the translation came from a backup because the better service failed. The reason is given in the brackets.
-- `English entry from Wiktionary (dictionaryapi.dev: no answer in time; Google: rate limited (HTTP 429)).`: the entry came from a backup.
-- `English entry from Wiktionary (...), with the phonetic spelling from Datamuse.` or `English entry from Google, with the phonetic spelling from Datamuse.`: the phonetic spelling was added from another service.
-- `Some results are saved copies from 2026-09-12, because the network did not answer.`: the result is a copy saved earlier. Nothing is wrong with the entry itself.
-
-The reasons are `timeout` (no route answered in time), `no answer within 15 s` or `no answer in time` (the script stopped waiting), `rate limited (HTTP 429)`, `refused (HTTP 403)`, `skipped, it limited the requests recently` (the service is in its waiting period), `connection failed` (the address could not be reached at all), `TLS error` (the secure connection was refused, for example by a proxy that intercepts traffic), `server error (HTTP 5xx)` (the service's own server failed, for example Cloudflare's 522 or 530 in front of dictionaryapi.dev), `HTTP <code>` (another refusal or error) and `unexpected response` (the reply was not in the expected form).
+The reason in brackets is short and readable, for example `timeout`, `rate limited (HTTP 429)`, `connection failed` or `server error (HTTP 5xx)`. `--check` shows the same reasons for every service and route.
 
 ## Audio
 
-Every English entry has one button, **Google voice**, which speaks the word with Google's text-to-speech service. It is the same button the original scripts had. In the Anki card it is left out, because AwesomeTTS speaks the word there.
+Every English entry has one button, **Google voice**, which speaks the word with Google's text-to-speech service. In the Anki card it is left out, because AwesomeTTS speaks the word there.
 
-There used to be a second button, **Recording**, that played dictionaryapi.dev's recorded pronunciation. It appeared only for words that service had answered, and it came from the same server that is often down, so it was removed. To bring it back, set `RECORDING_BUTTON = True` in `dict_core.py`.
-
-The audio is fetched by GoldenDict-NG itself when you press a button, not by the script. It therefore follows GoldenDict-NG's own network settings (look for proxy options in its preferences), not the routes described above, and Google voice is subject to Google's limits. Both the voice and the recording are MP3 files, and some builds of Qt WebEngine, the engine GoldenDict-NG shows its articles in, cannot play MP3 in an HTML audio tag. If a button does nothing while the entry itself loads fine, that is the likely cause or the network settings above. I could not check GoldenDict-NG's own build.
+The audio is fetched by GoldenDict-NG itself when you press a button, not by the script. It therefore follows GoldenDict-NG's own network settings (look for proxy options in its preferences), not the routes described above, and Google voice is subject to Google's limits. The voice is an MP3 file, and some builds of Qt WebEngine, the engine GoldenDict-NG shows its articles in, cannot play MP3 in an HTML audio tag. If a button does nothing while the entry itself loads fine, that is the likely cause or the network settings above. I could not check GoldenDict-NG's own build.
 
 ## Command-line options
 
@@ -330,30 +308,19 @@ Options must come before the word. `--` ends the options, so a word that begins 
 
 These constants are at the top of `dict_core.py`:
 
-| Setting              | Default      | Meaning                                                                                        |
-| -------------------- | ------------ | ---------------------------------------------------------------------------------------------- |
-| `PROXY`              | `""`         | Your VPN's proxy, for example `socks5://127.0.0.1:10808` or `http://127.0.0.1:10809`.          |
-| `AUTO_PROXY`         | `True`       | Look for a VPN app's local proxy on `127.0.0.1`.                                               |
-| `LOCAL_PROXY_PORTS`  | common ports | The ports probed by `AUTO_PROXY`. Only `127.0.0.1` is ever probed.                             |
-| `ENABLE_AUDIO`       | `True`       | The Google voice button.                                                                       |
-| `RECORDING_BUTTON`   | `False`      | Also a Recording button with dictionaryapi.dev's MP3, when it has one.                         |
-| `SHOW_SOURCE_NOTES`  | `False`      | Also write the notes that say which service supplied a part. They are always in `network.log`. |
-| `DISABLED_SERVICES`  | `()`         | Services never used, for example `("mymemory", "datamuse")`. See [Privacy](#privacy).          |
-| `MYMEMORY_EMAIL`     | `""`         | An e-mail address, which raises MyMemory's daily limit. See its documentation.                 |
-| `TOTAL_BUDGET`       | `15.0`       | Seconds after which the script prints what it has.                                             |
-| `HEDGE_DELAY`        | `2.0`        | Seconds of silence from a first choice before a backup is asked.                               |
-| `OPTIONAL_GRACE`     | `4.0`        | Seconds in all that a better service gets once a lesser answer is in hand.                     |
-| `EXTRA_GRACE`        | `2.0`        | The same, for a service asked only to add an extra (phonetic spelling, examples, synonyms).    |
-| `SHORT_GRACE`        | `0.5`        | The same, for a service that did not answer in recent lookups.                                 |
-| `LOOKUP_WAIT`        | `8.0`        | Seconds the second program waits for the first one's lookup of the same word.                  |
-| `COOLDOWN_BASE`      | `600`        | Seconds a service that answered 429 or 403 is left alone. Doubles on each repeat.              |
-| `COOLDOWN_MAX`       | `3600`       | The longest such wait (a longer `Retry-After` from the server is respected).                   |
-| `ROUTE_TIMEOUT`      | `8.0`        | Seconds one network operation on a route may take.                                             |
-| `ROUTE_STAGGER`      | `1.2`        | Seconds before the next route starts alongside the earlier ones.                               |
-| `CACHE_TTL`          | 30 days      | How long a result is fresh (no network needed).                                                |
-| `BACKUP_TTL`         | 1 day        | The same for a backup service's result.                                                        |
-| `NEGATIVE_CACHE_TTL` | 1 day        | How long a "not found" answer is fresh.                                                        |
-| `STALE_TTL`          | 1 year       | How old a saved copy may be and still be used when the network fails.                          |
+| Setting             | Default      | Meaning                                                                                        |
+| ------------------- | ------------ | ---------------------------------------------------------------------------------------------- |
+| `PROXY`             | `""`         | Your VPN's proxy, for example `socks5://127.0.0.1:10808` or `http://127.0.0.1:10809`.          |
+| `AUTO_PROXY`        | `True`       | Look for a VPN app's local proxy on `127.0.0.1`.                                               |
+| `LOCAL_PROXY_PORTS` | common ports | The ports probed by `AUTO_PROXY`. Only `127.0.0.1` is ever probed.                             |
+| `ENABLE_AUDIO`      | `True`       | The Google voice button.                                                                       |
+| `RECORDING_BUTTON`  | `False`      | Also a Recording button with dictionaryapi.dev's MP3, when it has one.                         |
+| `SHOW_SOURCE_NOTES` | `False`      | Also write the notes that say which service supplied a part. They are always in `network.log`. |
+| `DISABLED_SERVICES` | `()`         | Services never used, for example `("mymemory", "datamuse")`. See [Privacy](#privacy).          |
+| `MYMEMORY_EMAIL`    | `""`         | An e-mail address, which raises MyMemory's daily limit. See its documentation.                 |
+| `TOTAL_BUDGET`      | `15.0`       | Seconds after which the script prints what it has.                                             |
+
+The other timing and cache constants are also at the top of `dict_core.py`, each with a comment.
 
 ## Cache, saved copies and the log
 
@@ -380,7 +347,7 @@ Every word you look up is sent to the services that are asked for it: Google, di
 - The script cannot make an unreachable or rate-limiting service available. It tries every route and backup it knows, and `--check` shows what it found.
 - Backup entries are plainer: Wiktionary has no phonetic spelling, and Datamuse's definitions are terse and have no examples. A phonetic spelling from Datamuse is American English and can differ from dictionaryapi.dev's. MyMemory's translations come from a shared translation memory and can be less accurate than Google's for single words.
 - The Google voice button plays audio from the internet when you press it, through GoldenDict-NG's own network settings and web engine. Saved copies do not include the audio.
-- The two programs share one lookup per word, but if the first is still busy after 8 seconds the second goes ahead on its own, and the two can then differ. The programs also differ in one respect by design: only the full one shows the translation.
+- GoldenDict-NG starts both programs at the same moment, so they share one lookup per word: the second waits up to 8 seconds for the first. If the first is still busy after that, the second goes ahead on its own and the two can differ. Only the full version shows the translation.
 - The Google endpoint is not an official API. It can change or stop working without notice, and the English definitions read from it depend on its response layout. The Wiktionary endpoint is a public Wikimedia one that can also change.
 - Only HTTP and SOCKS5 proxies without a login are supported. A proxy that needs a user name and password is not.
 - Definitions are looked up only for one- and two-word queries.
@@ -394,7 +361,7 @@ From the project folder:
 python -m unittest discover -s tests -v
 ```
 
-The tests need no internet access. The tests of the card's script run the real back template with Node and are skipped if Node is not installed. Services are replaced with fakes, and the connection routes are tested against small servers and proxies on your own computer: a service that never answers, an HTTP proxy and a SOCKS5 proxy that stand in for a VPN app, automatic proxy detection, remembered routes, a server that answers 429, a server that fails once, an untrusted certificate, an HTTPS server reached over IPv4 only, a process that must exit on time while its requests are still hanging, and the two programs started as two real processes at the same moment, which must ask each service once and show the same English entry. The parsers are tested against samples that follow the services' documented response formats, not against the live services. The `openssl` command is needed for the tests that use HTTPS; those tests are skipped without it.
+The tests need no internet access. The tests of the card's script need Node and are skipped if it is not installed; the tests that use HTTPS need the `openssl` command and are skipped without it. The parsers are tested against samples that follow the services' documented response formats, not against the live services.
 
 ## Credits
 
